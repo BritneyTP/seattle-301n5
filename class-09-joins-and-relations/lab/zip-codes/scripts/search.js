@@ -1,39 +1,38 @@
 (function(module) {
 
-  // TODO: Write the code to populate your filters, and enable the search queries here in search.js
-  function populateFilters(){}
-
-  populateFilters.statesPop = function(){
-    webDB.execute([{
-      'sql': 'SELECT DISTINCT state FROM zips ORDER BY state ',
-    }
-  ],
-  function(result){
-    result.forEach(function(ind){
-      $('#state-select').append('<option>' + ind.state + '</option>')
-
+  // TODID: Write the code to populate your filters, and enable the search queries here in search.js
+  (function() {
+    webDB.execute('SELECT DISTINCT state FROM zips ORDER BY state', function(stateresults){
+      stateresults.forEach(function(row){
+        var staterow = '<option value = '+row.state+'>'+row.state+'</option>'
+        $('#state-select').append(staterow);
+      })
     })
+  })();
 
-  }
-);
-};
-
-populateFilters.cityPop = function(){
-  $('#state-select').on('change', function(){
-    webDB.execute([{
-      'sql': 'SELECT DISTINCT city FROM zips WHERE state = ? ORDER BY city',
-      'data' : [$('#state-select').val()]
-    }
-  ],
-  function(result){
-    result.forEach(function(ind){
-      $('#city-select').append('<option>' + ind.city + '</option>')
+  $('#state-select').on('change',function(){
+    $('#renew').siblings().remove();
+    webDB.execute ('SELECT DISTINCT city FROM zips WHERE state = "'+$(this).val()+'" ORDER BY city', function(row){
+      if(row)
+      row.forEach(function(row){
+        var cityrow = '<option value = '+row.city+'>'+row.city+'</option>'
+        $('#city-select').append(cityrow);
+      })
     })
-  });
-})
+  })
+  $('#city-select').on('change', function(e) {
+    webDB.execute(
+      'SELECT * FROM zips WHERE state="' + $('#state-select').val() + '" AND city="' + $(this).val() + '"',
+      function(row) {
+        initMap(row);
+      })
+    })
+    $('#zipco').on('submit', function(e) {
+      e.preventDefault();
+      webDB.execute('SELECT * FROM zips WHERE zip =' + e.target.zip.value, function(row) {
+        initMap(row);
+      })
+    })
+    // TODID: You will also interact with the map.js file here
 
-}
-// TODO: You will also interact with the map.js file here
-
-module.populateFilters = populateFilters;
-})(window)
+  })(window)
